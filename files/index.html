@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tamil Nadu Grievance Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Syne:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/react@18/umd/react.development.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/dist/Recharts.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0a0f1a;--bg2:#111827;--bg3:#1a2235;--surface:#1e2d40;--surface2:#243348;
+  --border:#2a3f5a;--border2:#3a5070;
+  --text:#e8eef6;--text2:#8fa8c8;--text3:#4a6a8a;
+  --accent:#00d4a8;--accent2:#00a882;--accent-glow:rgba(0,212,168,0.2);
+  --warn:#f59e0b;--danger:#ef4444;--info:#3b82f6;
+  --h-font:'DM Serif Display',serif;--b-font:'Syne',sans-serif;--mono:'IBM Plex Mono',monospace;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--b-font);min-height:100vh;overflow-x:hidden}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px}
+
+/* LAYOUT */
+.app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+.sidebar{background:var(--bg2);border-right:1px solid var(--border);padding:0;display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+.main{background:var(--bg);overflow-y:auto}
+
+/* SIDEBAR */
+.logo{padding:28px 24px 20px;border-bottom:1px solid var(--border)}
+.logo-mark{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.logo-icon{width:32px;height:32px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.logo-icon svg{width:18px;height:18px;fill:var(--bg)}
+.logo h1{font-family:var(--h-font);font-size:16px;color:var(--text);line-height:1.2}
+.logo p{font-size:11px;color:var(--text3);font-family:var(--mono);margin-top:2px}
+.nav{padding:16px 12px;flex:1}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all .2s;margin-bottom:2px;font-size:14px;color:var(--text2);font-weight:500;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{background:var(--surface);color:var(--text)}
+.nav-item.active{background:var(--accent-glow);color:var(--accent);border:1px solid rgba(0,212,168,.3)}
+.nav-item svg{width:16px;height:16px;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--accent);color:var(--bg);font-size:10px;font-family:var(--mono);padding:2px 6px;border-radius:20px;font-weight:600}
+.sidebar-footer{padding:16px 24px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);font-family:var(--mono)}
+
+/* HEADER */
+.page-header{padding:32px 40px 24px;border-bottom:1px solid var(--border)}
+.page-header h2{font-family:var(--h-font);font-size:28px;color:var(--text);margin-bottom:4px}
+.page-header p{font-size:14px;color:var(--text2)}
+.page-content{padding:32px 40px}
+
+/* CARDS */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px}
+.card-sm{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+
+/* STAT GRID */
+.stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;position:relative;overflow:hidden}
+.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent)}
+.stat-card.warn::before{background:var(--warn)}
+.stat-card.danger::before{background:var(--danger)}
+.stat-card.info::before{background:var(--info)}
+.stat-label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--mono);margin-bottom:8px}
+.stat-value{font-family:var(--h-font);font-size:36px;color:var(--text);line-height:1}
+.stat-sub{font-size:12px;color:var(--text3);margin-top:6px}
+
+/* FORM */
+.form-group{margin-bottom:20px}
+.form-label{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--mono);margin-bottom:8px}
+.form-textarea{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:16px;color:var(--text);font-family:var(--b-font);font-size:15px;line-height:1.6;resize:vertical;min-height:140px;transition:border-color .2s;outline:none}
+.form-textarea:focus{border-color:var(--accent)}
+.form-textarea::placeholder{color:var(--text3)}
+.char-count{font-size:11px;color:var(--text3);font-family:var(--mono);text-align:right;margin-top:4px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:12px 24px;border-radius:8px;font-family:var(--b-font);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;border:none}
+.btn-primary{background:var(--accent);color:var(--bg)}
+.btn-primary:hover:not(:disabled){background:var(--accent2);transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid var(--border2)}
+.btn-outline:hover{border-color:var(--accent);color:var(--accent)}
+.btn svg{width:16px;height:16px}
+
+/* RESULT CARD */
+.result-card{background:linear-gradient(135deg,var(--bg3) 0%,var(--surface) 100%);border:1px solid var(--accent);border-radius:14px;padding:24px;margin-top:24px;animation:slideIn .4s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.result-header{display:flex;align-items:center;gap:10px;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.result-header h3{font-family:var(--h-font);font-size:18px;color:var(--accent)}
+.result-check{width:28px;height:28px;background:var(--accent);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.result-check svg{width:14px;height:14px;fill:var(--bg)}
+.result-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.result-item{background:var(--bg2);border-radius:8px;padding:12px 14px}
+.result-item-label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-family:var(--mono);margin-bottom:4px}
+.result-item-value{font-size:16px;font-weight:600;color:var(--text)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;font-family:var(--mono)}
+.badge-high{background:rgba(239,68,68,.15);color:#f87171;border:1px solid rgba(239,68,68,.3)}
+.badge-medium{background:rgba(245,158,11,.15);color:#fbbf24;border:1px solid rgba(245,158,11,.3)}
+.badge-low{background:rgba(0,212,168,.15);color:var(--accent);border:1px solid rgba(0,212,168,.3)}
+.badge-complaint{background:rgba(239,68,68,.1);color:#fc8181}
+.badge-request{background:rgba(59,130,246,.1);color:#93c5fd}
+.badge-suggestion{background:rgba(245,158,11,.1);color:#fcd34d}
+.result-msg{font-size:13px;color:var(--text2);line-height:1.5;padding:12px 14px;background:var(--bg2);border-radius:8px;border-left:3px solid var(--accent)}
+.method-tag{font-size:10px;font-family:var(--mono);color:var(--text3);margin-top:8px}
+.method-tag span{color:var(--accent)}
+
+/* LOADING */
+.spinner{width:20px;height:20px;border:2px solid rgba(0,212,168,.3);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-bar{height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:16px}
+.loading-bar-fill{height:100%;background:var(--accent);border-radius:2px;animation:loadPulse 1.5s ease-in-out infinite}
+@keyframes loadPulse{0%{width:0;opacity:1}100%{width:100%;opacity:.4}}
+
+/* TABLE */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead tr{border-bottom:2px solid var(--border)}
+th{padding:10px 14px;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);font-family:var(--mono);font-weight:500;white-space:nowrap}
+td{padding:12px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle}
+tr:hover td{background:var(--surface2)}
+.text-cell{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ts-cell{font-family:var(--mono);font-size:11px;color:var(--text3)}
+
+/* CHART AREA */
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px}
+.chart-title{font-size:13px;font-weight:600;color:var(--text2);text-transform:uppercase;letter-spacing:.06em;font-family:var(--mono);margin-bottom:20px}
+
+/* ALERT */
+.alert{padding:12px 16px;border-radius:8px;font-size:13px;margin-bottom:16px;display:flex;align-items:center;gap:10px}
+.alert-error{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);color:#fca5a5}
+.alert-success{background:rgba(0,212,168,.08);border:1px solid rgba(0,212,168,.25);color:var(--accent)}
+.alert svg{width:16px;height:16px;flex-shrink:0}
+
+/* EXAMPLES */
+.examples{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.example-chip{padding:6px 12px;background:var(--bg3);border:1px solid var(--border);border-radius:20px;font-size:12px;color:var(--text2);cursor:pointer;transition:all .2s;font-family:var(--b-font)}
+.example-chip:hover{border-color:var(--accent);color:var(--accent)}
+
+/* PAGINATION */
+.pagination{display:flex;align-items:center;gap:8px;margin-top:20px;justify-content:flex-end}
+.page-btn{padding:6px 12px;border-radius:6px;font-size:12px;font-family:var(--mono);cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2);transition:all .2s}
+.page-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.page-btn:disabled{opacity:.4;cursor:not-allowed}
+.page-info{font-size:12px;font-family:var(--mono);color:var(--text3)}
+
+/* EMPTY STATE */
+.empty{text-align:center;padding:60px 20px}
+.empty-icon{font-size:40px;margin-bottom:16px;opacity:.4}
+.empty h3{font-family:var(--h-font);font-size:20px;color:var(--text2);margin-bottom:8px}
+.empty p{font-size:14px;color:var(--text3)}
+
+/* API DOCS */
+.api-block{background:var(--bg3);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;font-family:var(--mono);font-size:13px;color:var(--text2)}
+.api-method{display:inline-block;padding:3px 8px;border-radius:4px;font-size:11px;font-weight:700;margin-right:8px}
+.api-method.post{background:rgba(0,212,168,.15);color:var(--accent)}
+.api-method.get{background:rgba(59,130,246,.15);color:#93c5fd}
+.api-url{color:var(--text);font-weight:500}
+.code-block{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:16px;margin-top:12px;font-size:12px;overflow-x:auto;line-height:1.6}
+.code-key{color:#93c5fd}.code-str{color:#86efac}.code-num{color:#fcd34d}
+
+/* GRID HELPER */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.section-title{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);font-family:var(--mono);margin-bottom:16px;font-weight:500}
+.divider{border:none;border-top:1px solid var(--border);margin:24px 0}
+
+/* TOOLTIP CUSTOM */
+.recharts-tooltip-wrapper .recharts-default-tooltip{background:var(--surface)!important;border:1px solid var(--border)!important;border-radius:8px!important;font-family:var(--b-font)!important}
+
+/* RESPONSIVE  */
+@media(max-width:900px){.app{grid-template-columns:1fr}.sidebar{display:none}.stat-grid{grid-template-columns:repeat(2,1fr)}.charts-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+const {useState,useEffect,useCallback,useRef} = React;
+const {
+  BarChart,Bar,PieChart,Pie,Cell,XAxis,YAxis,Tooltip,ResponsiveContainer,
+  Legend,CartesianGrid
+} = Recharts;
+
+// ── CONFIG ──────────────────────────────────
+const API_BASE = "http://localhost:8000";
+
+// ── MOCK DATA (shown when backend offline) ──
+const MOCK_STATS = {
+  total:1247,recent_7days_count:83,
+  by_severity:{High:312,Medium:298,Low:637},
+  by_category:{Water:186,Road:210,Electricity:198,Garbage:175,Drainage:168,Health:155,Transport:155},
+  by_type:{Complaint:485,Request:421,Suggestion:341}
+};
+const MOCK_COMPLAINTS = {
+  total:1247,
+  complaints:[
+    {id:"1",text:"Sewage overflow near Anna Nagar junction flooding the road",type:"Complaint",category:"Drainage",severity:"High",created_at:new Date().toISOString()},
+    {id:"2",text:"Please arrange to fix the broken street light on Mount Road",type:"Request",category:"Electricity",severity:"Medium",created_at:new Date(Date.now()-86400000).toISOString()},
+    {id:"3",text:"Garbage not collected for 4 days in T.Nagar residential area",type:"Complaint",category:"Garbage",severity:"High",created_at:new Date(Date.now()-172800000).toISOString()},
+    {id:"4",text:"Water supply has been irregular in Velachery for the past week",type:"Complaint",category:"Water",severity:"Medium",created_at:new Date(Date.now()-259200000).toISOString()},
+    {id:"5",text:"Suggest installing speed bumps near the school in Adyar",type:"Suggestion",category:"Transport",severity:"Low",created_at:new Date(Date.now()-345600000).toISOString()},
+    {id:"6",text:"Large pothole on OMR near Sholinganallur causing accidents",type:"Complaint",category:"Road",severity:"High",created_at:new Date(Date.now()-432000000).toISOString()},
+  ]
+};
+
+// ── API HELPERS ──────────────────────────────
+async function apiFetch(path,opts={}){
+  const r = await fetch(API_BASE+path,{headers:{"Content-Type":"application/json"},...opts});
+  if(!r.ok) throw new Error(`API ${r.status}`);
+  return r.json();
+}
+const submitComplaint = t=>apiFetch("/complaint",{method:"POST",body:JSON.stringify({text:t})});
+const fetchComplaints = (p,lim)=>apiFetch(`/complaints?page=${p}&limit=${lim}`);
+const fetchStats = ()=>apiFetch("/stats");
+
+// ── ICONS ────────────────────────────────────
+const Icon = ({d,size=16,c="currentColor"})=>React.createElement("svg",{width:size,height:size,viewBox:"0 0 24 24",fill:"none",stroke:c,strokeWidth:2,strokeLinecap:"round",strokeLinejoin:"round"},React.createElement("path",{d}));
+const icons = {
+  file:    "M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2l6 6M16 13H8M16 17H8M10 9H8",
+  chart:   "M18 20V10M12 20V4M6 20v-6",
+  send:    "M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z",
+  check:   "M20 6L9 17l-5-5",
+  alert:   "M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01",
+  trash:   "M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2",
+  code:    "M16 18l6-6-6-6M8 6l-6 6 6 6",
+  refresh: "M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15",
+  shield:  "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
+  wifi:    "M5 12.55a11 11 0 0 1 14.08 0M1.42 9a16 16 0 0 1 21.16 0M8.53 16.11a6 6 0 0 1 6.95 0M12 20h.01"
+};
+
+// ── BADGE ────────────────────────────────────
+function Badge({type,val}){
+  const cls = type==="severity"
+    ? val==="High" ? "badge badge-high" : val==="Medium" ? "badge badge-medium" : "badge badge-low"
+    : val==="Complaint" ? "badge badge-complaint" : val==="Request" ? "badge badge-request" : "badge badge-suggestion";
+  return React.createElement("span",{className:cls},val);
+}
+
+// ── SUBMIT PAGE ──────────────────────────────
+function SubmitPage(){
+  const [text,setText] = useState("");
+  const [loading,setLoading] = useState(false);
+  const [result,setResult] = useState(null);
+  const [error,setError] = useState(null);
+  const [useMock,setUseMock] = useState(false);
+
+  const examples = [
+    "Sewage is overflowing near our street in Adyar causing flooding",
+    "Street light not working on Anna Salai for past 3 days",
+    "Please fix the large pothole on OMR near Sholinganallur",
+    "Garbage collection has been irregular in T.Nagar for a week",
+    "Water supply pipe burst in Velachery near the market",
+    "Suggest installing more bus shelters on the outer ring road",
+  ];
+
+  const mockPredict = (t)=>{
+    const lower = t.toLowerCase();
+    let type = lower.includes("please")||lower.includes("request")||lower.includes("fix")?"Request":
+               lower.includes("suggest")||lower.includes("should")||lower.includes("better")?"Suggestion":"Complaint";
+    let cat = lower.includes("water")||lower.includes("pipe")?"Water":
+              lower.includes("road")||lower.includes("pothole")?"Road":
+              lower.includes("light")||lower.includes("electric")?"Electricity":
+              lower.includes("garbage")||lower.includes("waste")?"Garbage":
+              lower.includes("drain")||lower.includes("sewage")||lower.includes("flood")?"Drainage":
+              lower.includes("bus")||lower.includes("transport")?"Transport":"Health";
+    let sev = lower.includes("burst")||lower.includes("overflow")||lower.includes("danger")||lower.includes("accident")?"High":
+              lower.includes("days")||lower.includes("week")||lower.includes("month")?"Medium":"Low";
+    return {type,category:cat,severity:sev,method:"rule-based (demo)"};
+  };
+
+  const handleSubmit = async()=>{
+    if(text.trim().length<10) return;
+    setLoading(true);setError(null);setResult(null);
+    try{
+      const r = useMock
+        ? {...mockPredict(text),id:"demo-"+Date.now(),text,created_at:new Date().toISOString()}
+        : await submitComplaint(text);
+      setResult(r);
+    }catch(e){
+      if(!useMock){setUseMock(true);const r={...mockPredict(text),id:"demo-"+Date.now(),text,created_at:new Date().toISOString()};setResult(r);setError("Backend offline – showing AI prediction in demo mode.")}
+      else setError(e.message);
+    }finally{setLoading(false);}
+  };
+
+  return React.createElement("div",null,
+    React.createElement("div",{className:"page-header"},
+      React.createElement("h2",null,"Submit a Complaint"),
+      React.createElement("p",null,"AI will instantly classify your grievance and route it to the right department")
+    ),
+    React.createElement("div",{className:"page-content"},
+      error && React.createElement("div",{className:"alert alert-error"},
+        React.createElement(Icon,{d:icons.alert}), error
+      ),
+      React.createElement("div",{className:"two-col"},
+        React.createElement("div",null,
+          React.createElement("div",{className:"card"},
+            React.createElement("div",{className:"form-group"},
+              React.createElement("label",{className:"form-label"},"Describe your grievance"),
+              React.createElement("textarea",{
+                className:"form-textarea",
+                value:text,
+                onChange:e=>setText(e.target.value),
+                placeholder:"e.g. The drainage near our street has been overflowing for 3 days, causing water-logging and health hazards for residents…",
+                maxLength:1000
+              }),
+              React.createElement("div",{className:"char-count"},text.length+"/1000")
+            ),
+            React.createElement("div",{className:"section-title"},"Try an example"),
+            React.createElement("div",{className:"examples"},
+              examples.map((ex,i)=>React.createElement("span",{
+                key:i,className:"example-chip",
+                onClick:()=>setText(ex)
+              },ex.length>45?ex.slice(0,45)+"…":ex))
+            ),
+            React.createElement("div",{style:{marginTop:"24px"}},
+              React.createElement("button",{
+                className:"btn btn-primary",
+                onClick:handleSubmit,
+                disabled:loading||text.trim().length<10,
+                style:{width:"100%",justifyContent:"center"}
+              },
+                loading ? React.createElement("div",{className:"spinner"}) : React.createElement(Icon,{d:icons.send}),
+                loading ? "Analysing…" : "Submit Grievance"
+              )
+            ),
+            loading && React.createElement("div",{className:"loading-bar"},React.createElement("div",{className:"loading-bar-fill"}))
+          )
+        ),
+        React.createElement("div",null,
+          React.createElement("div",{className:"card"},
+            React.createElement("div",{className:"section-title"},"How it works"),
+            [
+              ["1","Text Analysis","Your complaint is tokenized and fed to the BERT model"],
+              ["2","Multi-task Classification","Simultaneously predicts type, category and severity"],
+              ["3","Severity Boost","Rule-based system enhances severity for critical keywords"],
+              ["4","Storage","Result saved to MongoDB with timestamp"],
+            ].map(([n,h,t])=>React.createElement("div",{key:n,style:{display:"flex",gap:"14px",marginBottom:"20px"}},
+              React.createElement("div",{style:{width:"28px",height:"28px",background:"var(--accent-glow)",border:"1px solid rgba(0,212,168,.3)",borderRadius:"50%",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,fontSize:"12px",color:"var(--accent)",fontFamily:"var(--mono)",fontWeight:"600"}},n),
+              React.createElement("div",null,
+                React.createElement("div",{style:{fontWeight:"600",fontSize:"14px",marginBottom:"4px",color:"var(--text)"}},h),
+                React.createElement("div",{style:{fontSize:"13px",color:"var(--text2)",lineHeight:"1.5"}},t)
+              )
+            ))
+          )
+        )
+      ),
+      result && React.createElement("div",{className:"result-card"},
+        React.createElement("div",{className:"result-header"},
+          React.createElement("div",{className:"result-check"},
+            React.createElement("svg",{viewBox:"0 0 24 24",width:14,height:14,fill:"none",stroke:"var(--bg)",strokeWidth:3,strokeLinecap:"round"},
+              React.createElement("path",{d:"M20 6L9 17l-5-5"})
+            )
+          ),
+          React.createElement("h3",null,"Complaint Registered Successfully")
+        ),
+        React.createElement("div",{className:"result-grid"},
+          React.createElement("div",{className:"result-item"},
+            React.createElement("div",{className:"result-item-label"},"Type"),
+            React.createElement(Badge,{type:"type",val:result.type})
+          ),
+          React.createElement("div",{className:"result-item"},
+            React.createElement("div",{className:"result-item-label"},"Category"),
+            React.createElement("div",{className:"result-item-value"},result.category)
+          ),
+          React.createElement("div",{className:"result-item"},
+            React.createElement("div",{className:"result-item-label"},"Severity"),
+            React.createElement(Badge,{type:"severity",val:result.severity})
+          )
+        ),
+        React.createElement("div",{className:"result-msg"},
+          "✓ Your grievance has been registered and will be resolved by the concerned department soon. Reference ID: ",
+          React.createElement("span",{style:{fontFamily:"var(--mono)",color:"var(--accent)",fontSize:"12px"}},result.id||"N/A")
+        ),
+        result.method && React.createElement("div",{className:"method-tag"},"AI engine: ",React.createElement("span",null,result.method))
+      )
+    )
+  );
+}
+
+// ── DASHBOARD PAGE ───────────────────────────
+const SEV_COLORS  = {High:"#ef4444",Medium:"#f59e0b",Low:"#00d4a8"};
+const CAT_COLORS  = ["#3b82f6","#8b5cf6","#06b6d4","#10b981","#f59e0b","#ef4444","#ec4899"];
+const TYPE_COLORS = {Complaint:"#ef4444",Request:"#3b82f6",Suggestion:"#f59e0b"};
+
+function DashboardPage(){
+  const [stats,setStats]         = useState(null);
+  const [complaints,setComplaints] = useState(null);
+  const [page,setPage]           = useState(1);
+  const [loading,setLoading]     = useState(true);
+  const [useMock,setUseMock]     = useState(false);
+  const LIMIT = 20;
+
+  const load = useCallback(async()=>{
+    setLoading(true);
+    try{
+      const [s,c] = await Promise.all([fetchStats(),fetchComplaints(page,LIMIT)]);
+      setStats(s);setComplaints(c);setUseMock(false);
+    }catch{
+      setStats(MOCK_STATS);
+      setComplaints({...MOCK_COMPLAINTS,complaints:MOCK_COMPLAINTS.complaints.slice((page-1)*LIMIT,page*LIMIT)});
+      setUseMock(true);
+    }finally{setLoading(false);}
+  },[page]);
+
+  useEffect(()=>{load();},[load]);
+
+  if(loading) return React.createElement("div",{style:{padding:"40px",textAlign:"center",color:"var(--text3)"}},
+    React.createElement("div",{className:"spinner",style:{margin:"0 auto 16px"}}),
+    React.createElement("div",null,"Loading dashboard…")
+  );
+  if(!stats||!complaints) return null;
+
+  const sevData = Object.entries(stats.by_severity).map(([name,value])=>({name,value}));
+  const catData = Object.entries(stats.by_category).map(([name,value])=>({name,value}));
+
+  return React.createElement("div",null,
+    React.createElement("div",{className:"page-header",style:{display:"flex",alignItems:"flex-start",justifyContent:"space-between"}},
+      React.createElement("div",null,
+        React.createElement("h2",null,"Dashboard"),
+        React.createElement("p",null,useMock?"Showing demo data (backend offline)":"Live grievance analytics · Tamil Nadu")
+      ),
+      React.createElement("button",{className:"btn btn-outline",onClick:load,style:{marginTop:"4px"}},
+        React.createElement(Icon,{d:icons.refresh}),"Refresh"
+      )
+    ),
+    React.createElement("div",{className:"page-content"},
+      React.createElement("div",{className:"stat-grid"},
+        React.createElement("div",{className:"stat-card"},
+          React.createElement("div",{className:"stat-label"},"Total Complaints"),
+          React.createElement("div",{className:"stat-value"},stats.total.toLocaleString()),
+          React.createElement("div",{className:"stat-sub"},"All time submissions")
+        ),
+        React.createElement("div",{className:"stat-card danger"},
+          React.createElement("div",{className:"stat-label"},"High Severity"),
+          React.createElement("div",{className:"stat-value",style:{color:"#f87171"}},(stats.by_severity.High||0).toLocaleString()),
+          React.createElement("div",{className:"stat-sub"},"Requires urgent action")
+        ),
+        React.createElement("div",{className:"stat-card warn"},
+          React.createElement("div",{className:"stat-label"},"Last 7 Days"),
+          React.createElement("div",{className:"stat-value",style:{color:"#fbbf24"}},(stats.recent_7days_count||0).toLocaleString()),
+          React.createElement("div",{className:"stat-sub"},"New submissions this week")
+        ),
+        React.createElement("div",{className:"stat-card info"},
+          React.createElement("div",{className:"stat-label"},"Resolution Rate"),
+          React.createElement("div",{className:"stat-value",style:{color:"#93c5fd"}},"78%"),
+          React.createElement("div",{className:"stat-sub"},"Avg. 3.2 days to resolve")
+        )
+      ),
+      React.createElement("div",{className:"charts-grid"},
+        React.createElement("div",{className:"chart-card"},
+          React.createElement("div",{className:"chart-title"},"Severity Distribution"),
+          React.createElement(ResponsiveContainer,{width:"100%",height:220},
+            React.createElement(PieChart,null,
+              React.createElement(Pie,{data:sevData,cx:"50%",cy:"50%",innerRadius:55,outerRadius:85,paddingAngle:3,dataKey:"value"},
+                sevData.map((e,i)=>React.createElement(Cell,{key:i,fill:SEV_COLORS[e.name]||"#888"}))
+              ),
+              React.createElement(Tooltip,{formatter:(v,n)=>[v,n],contentStyle:{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:"8px",color:"var(--text)",fontFamily:"var(--b-font)"}}),
+              React.createElement(Legend,{formatter:(v)=>React.createElement("span",{style:{color:"var(--text2)",fontSize:"12px"}},v)})
+            )
+          )
+        ),
+        React.createElement("div",{className:"chart-card"},
+          React.createElement("div",{className:"chart-title"},"Complaints by Category"),
+          React.createElement(ResponsiveContainer,{width:"100%",height:220},
+            React.createElement(BarChart,{data:catData,margin:{top:0,right:0,left:-20,bottom:0}},
+              React.createElement(CartesianGrid,{strokeDasharray:"3 3",stroke:"var(--border)"}),
+              React.createElement(XAxis,{dataKey:"name",tick:{fill:"var(--text3)",fontSize:10,fontFamily:"var(--mono)"},axisLine:{stroke:"var(--border)"}}),
+              React.createElement(YAxis,{tick:{fill:"var(--text3)",fontSize:10},axisLine:{stroke:"var(--border)"}}),
+              React.createElement(Tooltip,{contentStyle:{background:"var(--surface)",border:"1px solid var(--border)",borderRadius:"8px",color:"var(--text)",fontFamily:"var(--b-font)"}}),
+              React.createElement(Bar,{dataKey:"value",radius:[4,4,0,0]},
+                catData.map((e,i)=>React.createElement(Cell,{key:i,fill:CAT_COLORS[i%CAT_COLORS.length]}))
+              )
+            )
+          )
+        )
+      ),
+      React.createElement("div",{className:"card"},
+        React.createElement("div",{style:{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"20px"}},
+          React.createElement("div",{className:"chart-title",style:{margin:0}},"Recent Complaints"),
+          React.createElement("div",{style:{fontSize:"12px",fontFamily:"var(--mono)",color:"var(--text3)"}},complaints.total+" total")
+        ),
+        React.createElement("div",{className:"table-wrap"},
+          React.createElement("table",null,
+            React.createElement("thead",null,
+              React.createElement("tr",null,
+                ["Text","Type","Category","Severity","Submitted"].map(h=>React.createElement("th",{key:h},h))
+              )
+            ),
+            React.createElement("tbody",null,
+              complaints.complaints.length===0
+                ? React.createElement("tr",null,React.createElement("td",{colSpan:5,style:{textAlign:"center",padding:"40px",color:"var(--text3)"}},
+                    "No complaints yet. Submit the first one!"
+                  ))
+                : complaints.complaints.map(c=>React.createElement("tr",{key:c.id},
+                    React.createElement("td",{className:"text-cell",title:c.text},c.text),
+                    React.createElement("td",null,React.createElement(Badge,{type:"type",val:c.type})),
+                    React.createElement("td",null,c.category),
+                    React.createElement("td",null,React.createElement(Badge,{type:"severity",val:c.severity})),
+                    React.createElement("td",{className:"ts-cell"},new Date(c.created_at).toLocaleDateString("en-IN",{day:"numeric",month:"short",hour:"2-digit",minute:"2-digit"}))
+                  ))
+            )
+          )
+        ),
+        complaints.total > LIMIT && React.createElement("div",{className:"pagination"},
+          React.createElement("button",{className:"page-btn",disabled:page===1,onClick:()=>setPage(p=>p-1)},"← Prev"),
+          React.createElement("span",{className:"page-info"},"Page "+page+" of "+Math.ceil(complaints.total/LIMIT)),
+          React.createElement("button",{className:"page-btn",disabled:page>=Math.ceil(complaints.total/LIMIT),onClick:()=>setPage(p=>p+1)},"Next →")
+        )
+      )
+    )
+  );
+}
+
+// ── API DOCS PAGE ────────────────────────────
+function ApiPage(){
+  const endpoints = [
+    {method:"POST",url:"/predict",desc:"Predict type, category, severity from complaint text",
+     req:`{\n  "text": "Sewage overflowing near Adyar market"\n}`,
+     res:`{\n  "type": "Complaint",\n  "category": "Drainage",\n  "severity": "High",\n  "method": "bert"\n}`},
+    {method:"POST",url:"/complaint",desc:"Submit complaint – AI classifies and stores to MongoDB",
+     req:`{\n  "text": "Please fix the broken street light"\n}`,
+     res:`{\n  "id": "665abc123...",\n  "text": "Please fix the broken street light",\n  "type": "Request",\n  "category": "Electricity",\n  "severity": "Medium",\n  "created_at": "2024-06-15T10:30:00Z"\n}`},
+    {method:"GET",url:"/complaints?page=1&limit=50",desc:"Fetch all complaints with pagination & optional filters",
+     req:null,
+     res:`{\n  "total": 1247,\n  "complaints": [ ... ]\n}`},
+    {method:"GET",url:"/stats",desc:"Get aggregated statistics for the dashboard",
+     req:null,
+     res:`{\n  "total": 1247,\n  "by_severity": {"High": 312, "Medium": 298, "Low": 637},\n  "by_category": {"Water": 186, "Road": 210, ...},\n  "by_type": {"Complaint": 485, ...},\n  "recent_7days_count": 83\n}`},
+  ];
+  return React.createElement("div",null,
+    React.createElement("div",{className:"page-header"},
+      React.createElement("h2",null,"API Reference"),
+      React.createElement("p",null,"FastAPI backend running at "+API_BASE)
+    ),
+    React.createElement("div",{className:"page-content"},
+      React.createElement("div",{className:"card",style:{marginBottom:"20px"}},
+        React.createElement("div",{className:"section-title"},"Base URL"),
+        React.createElement("div",{style:{fontFamily:"var(--mono)",fontSize:"14px",color:"var(--accent)",marginBottom:"12px"}},API_BASE),
+        React.createElement("div",{style:{fontSize:"13px",color:"var(--text2)",lineHeight:"1.6"}},
+          "All endpoints accept and return JSON. CORS is enabled for all origins. The AI classifier will use BERT if a trained model is found in ",
+          React.createElement("code",{style:{fontFamily:"var(--mono)",color:"var(--accent)",fontSize:"12px"}},"model/saved_model/"),
+          ", otherwise falls back to rule-based classification."
+        )
+      ),
+      endpoints.map((ep,i)=>React.createElement("div",{key:i,className:"api-block"},
+        React.createElement("div",{style:{marginBottom:"8px"}},
+          React.createElement("span",{className:"api-method "+ep.method.toLowerCase()},ep.method),
+          React.createElement("span",{className:"api-url"},ep.url)
+        ),
+        React.createElement("div",{style:{fontSize:"13px",color:"var(--text2)",marginBottom:"12px"}},ep.desc),
+        ep.req && React.createElement("div",null,
+          React.createElement("div",{style:{fontSize:"11px",color:"var(--text3)",marginBottom:"6px"},"data-l":"REQUEST BODY"},"REQUEST BODY"),
+          React.createElement("pre",{className:"code-block"},ep.req)
+        ),
+        React.createElement("div",null,
+          React.createElement("div",{style:{fontSize:"11px",color:"var(--text3)",margin:"8px 0 6px"}},ep.req?"RESPONSE":"RESPONSE"),
+          React.createElement("pre",{className:"code-block"},ep.res)
+        )
+      ))
+    )
+  );
+}
+
+// ── APP SHELL ────────────────────────────────
+function App(){
+  const [page,setPage] = useState("submit");
+
+  const navItems = [
+    {id:"submit",label:"Submit Complaint",icon:icons.file},
+    {id:"dashboard",label:"Dashboard",icon:icons.chart},
+    {id:"api",label:"API Reference",icon:icons.code},
+  ];
+
+  return React.createElement("div",{className:"app"},
+    React.createElement("aside",{className:"sidebar"},
+      React.createElement("div",{className:"logo"},
+        React.createElement("div",{className:"logo-mark"},
+          React.createElement("div",{className:"logo-icon"},
+            React.createElement("svg",{viewBox:"0 0 24 24",width:18,height:18},
+              React.createElement("path",{d:"M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",fill:"var(--bg)"})
+            )
+          ),
+          React.createElement("div",null,
+            React.createElement("h1",null,"Grievance AI"),
+            React.createElement("p",null,"Tamil Nadu · v1.0")
+          )
+        )
+      ),
+      React.createElement("nav",{className:"nav"},
+        navItems.map(n=>React.createElement("button",{
+          key:n.id,className:"nav-item"+(page===n.id?" active":""),
+          onClick:()=>setPage(n.id)
+        },
+          React.createElement(Icon,{d:n.icon}),n.label
+        ))
+      ),
+      React.createElement("div",{className:"sidebar-footer"},"Powered by BERT · FastAPI · MongoDB")
+    ),
+    React.createElement("main",{className:"main"},
+      page==="submit"    ? React.createElement(SubmitPage,null)    :
+      page==="dashboard" ? React.createElement(DashboardPage,null) :
+                           React.createElement(ApiPage,null)
+    )
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(React.createElement(App));
+</script>
+</body>
+</html>

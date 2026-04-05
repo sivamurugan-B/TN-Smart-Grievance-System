@@ -1,0 +1,21 @@
+{
+  "type": [
+    "Complaint",
+    "Request",
+    "Suggestion"
+  ],
+  "category": [
+    "Drainage",
+    "Electricity",
+    "Garbage",
+    "Health",
+    "Road",
+    "Transport",
+    "Water"
+  ],
+  "severity": [
+    "High",
+    "Low",
+    "Medium"
+  ]
+}
